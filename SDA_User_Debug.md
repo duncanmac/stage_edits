@@ -147,165 +147,92 @@ If you **have** an existing System ILA core in your design (for instance, added 
 The next step is to invoke the Tcl script using **xocc** to [modify the System ILA Core](#Update_ILA_Core).
 
 <a name="No_ILA_Core"></a>
-If you **do not have** an existing System ILA core in your design, then you need to create one that includes one or more **native probe** ports that are tied off to ground (e.g., logical '0'). You do this by first creating a Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP Integrator block design as follows:
-							◊ Create a new System ILA core:
-								# Create the System ILA core
-								create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0
-							◊ Enable one or more "native probe" port(s).  For instance, to add a single 32-bit native probe port:
-								# Customize the System ILA core
-								set_property -dict \
-								  [list \
-								    CONFIG.C_DATA_DEPTH {4096} \
-								    CONFIG.C_INPUT_PIPE_STAGES {2} \
-								    CONFIG.C_MON_TYPE {NATIVE} \
-								    CONFIG.C_PROBE_WIDTH_PROPAGATION {MANUAL} \
-								    CONFIG.C_NUM_OF_PROBES {1} \
-								    CONFIG.C_PROBE0_WIDTH {32} \
-								  ] [get_bd_cells system_ila_0]
-							◊ Add an xlconstant block that will be used to tie off the native probe port added above to "ground" (i.e., logical '0'):
-								# Add 32-bit "ground" constant blocks that will be used to 
-								# tie off the 32-bit native probe ports of the System ILA
-								create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 sys_ila_probe_tieoff32_0
-								set_property -dict [list CONFIG.CONST_WIDTH {32}  CONFIG.CONST_VAL {0}] [get_bd_cells sys_ila_probe_tieoff32_0]
-							◊ Connect the xlconstant block to the new native probe port of the System ILA core
-								connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
+If you **do not have** an existing System ILA core in your design, then you need to create one that includes one or more **native
+probe** ports that are tied off to ground (e.g., logical '0'). You do this by first creating a Vivado Tcl script (which we'll call
+"/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP Integrator block design as follows:
+- Create a new System ILA core:
+    ```
+    # Create the System ILA core
+    create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0
+    ```
+- Enable one or more "native probe" port(s).  For instance, to add a single 32-bit native probe port:
+    ```
+    # Customize the System ILA core
+    set_property -dict \
+    [list \
+    CONFIG.C_DATA_DEPTH {4096} \
+    CONFIG.C_INPUT_PIPE_STAGES {2} \
+    CONFIG.C_MON_TYPE {NATIVE} \
+    CONFIG.C_PROBE_WIDTH_PROPAGATION {MANUAL} \
+    CONFIG.C_NUM_OF_PROBES {1} \
+    CONFIG.C_PROBE0_WIDTH {32} \
+    ] [get_bd_cells system_ila_0]
+    ```
+- Add an xlconstant block that will be used to tie off the native probe port added above to "ground" (i.e., logical '0'):
+    ```
+    # Add 32-bit "ground" constant blocks that will be used to 
+    # tie off the 32-bit native probe ports of the System ILA
+    create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 sys_ila_probe_tieoff32_0
+    set_property -dict [list CONFIG.CONST_WIDTH {32}  CONFIG.CONST_VAL {0}] [get_bd_cells sys_ila_probe_tieoff32_0]
+    ```
+- Connect the xlconstant block to the new native probe port of the System ILA core
+    ```
+    connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
+    ```
 <a name="Update_ILA_Core"></a>
-					c) Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system linker step of the xocc compile run:
-						xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl …
-					Note: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
-				2) Modify debug port connections to probe signals in post-route design
-					a) Once you run your kernel design in hardware execution mode and determine you would like to debug an intra-kernel signal (for example, elements an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado Tcl script (which we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the "modify_debug_ports" command to connect the probe0[31:0] port to the 32-bit bus net:
-						modify_debug_ports -probes \
-						  [list \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 0  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[0]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 1  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[1]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 2  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[2]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 3  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[3]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 4  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[4]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 5  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[5]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 6  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[6]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 7  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[7]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 8  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[8]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 9  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[9]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 10 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[10]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 11 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[11]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 12 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[12]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 13 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[13]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 14 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[14]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 15 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[15]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 16 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[16]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 17 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[17]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 18 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[18]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 19 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[19]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 20 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[20]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 21 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[21]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 22 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[22]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 23 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[23]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 24 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[24]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 25 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[25]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 26 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[26]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 27 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[27]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 28 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[28]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 29 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[29]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 30 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[30]} \
-						    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 31 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31]} \
-						  ]
-					b) Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the route_design step of the xocc compile run:
-						xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl …
-					Note:  the vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
+Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system **linker** step of the xocc compile run:
+    ```
+    xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl …
+    ```
+**Note**: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
 
-
-###### Adding a System ILA core from scratch
-If you DO NOT have an existing System ILA core in your design, then you need to create one that includes one or more **native probe** 
-ports that are tied off to ground (e.g., logical '0'). 
-
-1. First creating a Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP Integrator 
-block design as follows:
-    1.1 Create a new System ILA core
-    ``` 
-        # Create the System ILA core
-				create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0
-    ``` 
-		1.2 Enable one or more **native probe* port(s). For instance, to add a single 32-bit native probe port:
-    ``` 
-				# Customize the System ILA core
-				set_property -dict \
-				  [list \
-				  CONFIG.C_DATA_DEPTH {4096} \
-					CONFIG.C_INPUT_PIPE_STAGES {2} \
-					CONFIG.C_MON_TYPE {NATIVE} \
-					CONFIG.C_PROBE_WIDTH_PROPAGATION {MANUAL} \
-					CONFIG.C_NUM_OF_PROBES {1} \
-					CONFIG.C_PROBE0_WIDTH {32} \
-					] [get_bd_cells system_ila_0]
-		``` 
-		1.3 Add an xlconstant block that will be used to tie off the native probe port added above to "ground" (i.e., logical '0'):
-	      ``` 
-				# Add 32-bit "ground" constant blocks that will be used to 
-				# tie off the 32-bit native probe ports of the System ILA
-				create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 sys_ila_probe_tieoff32_0
-				set_property -dict [list CONFIG.CONST_WIDTH {32}  CONFIG.CONST_VAL {0}] [get_bd_cells sys_ila_probe_tieoff32_0]
-	      ``` 
-		1.4 Connect the xlconstant block to the new native probe port of the System ILA core
-		    ``` 
-				connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
-		    ``` 
-    1.5 Run xocc with the newly script Tcl
-    Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system 
-    **linker step** of the xocc compile run:
-	    ``` 
-	    xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl …
-	    ``` 
-    **Note**: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
-    
-1. Modify debug port connections to probe signals in post-route design
-    1.1 Once you run your kernel design in System mode and determine you would like to debug an intra-kernel signal (for example, 
-    elements an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado 
-    Tcl script (which we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the **modify_debug_ports** command to connect 
-    the probe0[31:0] port to the 32-bit bus net:
-      ```
-			modify_debug_ports -probes \
-			    [list \
-				  {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 0  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[0]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 1  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[1]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 2  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[2]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 3  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[3]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 4  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[4]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 5  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[5]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 6  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[6]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 7  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[7]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 8  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[8]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 9  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[9]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 10 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[10]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 11 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[11]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 12 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[12]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 13 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[13]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 14 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[14]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 15 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[15]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 16 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[16]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 17 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[17]} \
-				  {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 18 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[18]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 19 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[19]} \
-				  {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 20 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[20]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 21 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[21]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 22 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[22]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 23 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[23]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 24 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[24]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 25 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[25]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 26 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[26]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 27 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[27]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 28 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[28]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 29 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[29]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 30 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[30]} \
-					{WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 31 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31]} \
-					]
-      ```
-  1.2 Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the 
-  **route_design** step of the xocc compile run:
-      ```
-			  xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl …
-      ```
-	**Note**:  the vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
+###### Modify debug port connections to probe signals in post-route design
+Once you run your kernel design in System mode and determine you would like to debug an intra-kernel signal (for example, elements 
+an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado Tcl script (which
+we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the "modify_debug_ports" command to connect the probe0[31:0] port to 
+the 32-bit bus net:
+    ```
+    modify_debug_ports -probes \
+    [list \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 0  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[0]} \    
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 1  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[1]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 2  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[2]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 3  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[3]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 4  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[4]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 5  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[5]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 6  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[6]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 7  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[7]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 8  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[8]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 9  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[9]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 10 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[10]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 11 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[11]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 12 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[12]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 13 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[13]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 14 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[14]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 15 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[15]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 16 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[16]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 17 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[17]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 18 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[18]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 19 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[19]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 20 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[20]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 21 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[21]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 22 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[22]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 23 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[23]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 24 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[24]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 25 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[25]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 26 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[26]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 27 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[27]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 28 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[28]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 29 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[29]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 30 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[30]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 31 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31]} \
+    ```
+Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the 
+route_design step of the xocc compile run:
+    ```
+    xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl …
+    ```
+**Note**:  The vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
 
 ###<a name="System_ILA_Tcl"></a>Changing the System ILA settings
 In order to change the default settings of any System ILA core in your design, you need to create a Vivado Tcl script 
