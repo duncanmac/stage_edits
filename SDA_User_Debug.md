@@ -82,12 +82,12 @@ outside of the kernel using the **xocc --dk chipscope** [feature][DK_ref] in ord
 of the System ILA core.  
 - However, if you need to correlate AXI transactions with other signals inside your RTL kernel, consider  using the post-route 
 design probing technique to attach these intra-kernel signals to the System ILA core that is probing the 
-external interfaces of your kernel. Refer to the [Planning to debug nets in post-route design](#Plan_Debug_Nets) section for more details.
+external interfaces of your kernel. Refer to the [Probing Internal Signals](#Plan_Debug_Nets) section for more details.
 
 ### Adding debug cores to your design
 
 #### HDK flow
-Use the standard IP core instantiation flow to add ILA and/or VIO cores to your design
+Use the standard [IP core instantiation flow][IP_core_Flow] outlined below to add ILA and/or VIO cores to your design
 1. Create "manage ip" project
 1. Select, customize, and generate appropriate debug IP
 1. Instantiate IP inside your CL design
@@ -96,29 +96,28 @@ Use the standard IP core instantiation flow to add ILA and/or VIO cores to your 
 Use the ILA core that is debugging the AXI interface between the Shell and Kernel logic.
 
 #### SDx flow
-Debugging kernel compute unit interfaces? If so, use the **xocc --dk chipscope** [feature][DK_ref] to add System ILA core(s) 
-to your design
 
-For SDx-RTL kernels
-    - Use the standard IP core instantiation flow to add ILA and/or VIO cores to your design
-		- These debug cores will automatically **...looks like missing sentence ????**
+Note: For RTL kernels use the standard [IP core instantiation flow][IP_core_Flow] to add ILA and/or VIO cores to your design. These debug cores will automatically **...looks like missing end-of-sentence ????**
 
-#### <a name="Plan_Debug_Nets"></a>Selecting Singals to Monitor
 There are two types of signals you may wish to monitor.
-- Signals which are nets inside designs
 - Signals which are ports on the Kernel compute unit
+- Signals which are nets inside the Kernel compute unit
 
+
+##### Probing Port Signals
+Use the **xocc --dk chipscope** [feature][DK_ref] to add System ILA core(s) to your design.
+
+<a name="Plan_Debug_Nets"></a>
 ##### Probing Internal Signals
-The procedure for selecting signals to monitor depends on whether:
-1. You **have** an existing System ILA core in your design
-1. You **do not have** an existing System ILA core in your design
+Follow this two-step process to probe signals which are internal to the Kernel compute unit.
 
-###### Working with an existing System ILA core
-If you **have** an existing System ILA core in your design, for instance, added using the **xocc --dk chipscope** [feature][DK_ref],
-then you need to modify it to add one or more **native probe** ports and tie them off to ground (e.g., logical '0'). 
-
-Follow this two-step process:
 1. Add/modify System ILA core to include extra "native probe ports"
+The procedure for selecting signals to monitor depends on whether:
+- You **have** an existing System ILA core in your design
+- You **do not have** an existing System ILA core in your design
+
+###### Modifying a Design with Existing ILA Core(s)
+If you **have** an existing System ILA core in your design (for instance, added using the "--dk chipscope" option), then you need to modify it to add one or more **native probe** ports and tie them off to ground (e.g., logical '0'). 
 
     1.1 You do this by first creating a Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP 
     Integrator.
@@ -153,7 +152,7 @@ Follow this two-step process:
 Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the **route_design**
 step of the xocc compile run:
 ```     
-						xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl 
+    xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl 
 ```     
 **Note**:  The vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
 
@@ -200,7 +199,6 @@ block design as follows:
 	    ``` 
     **Note**: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
     
-##### Probing Port Signals
 1. Modify debug port connections to probe signals in post-route design
     1.1 Once you run your kernel design in System mode and determine you would like to debug an intra-kernel signal (for example, 
     elements an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado 
@@ -311,5 +309,7 @@ step of the xocc compile run:
 # Additional Resources
 
 
-[Xilinx Virtual Cable]:https://www.xilinx.com/products/intellectual-property/xvc.html ("Needs reviewed")
-[DK_ref]:https://www.xilinx.com/products/intellectual-property/xvc.html (Needs updated)
+[Xilinx Virtual Cable]:https://www.xilinx.com/products/intellectual-property/xvc.html (Needs reviewed)
+[DK_ref]:https://www.xilinx.com/products/intellectual-property/xvc.html (Need Correct URL)
+[IP_core_Flow]:https://www.xilinx.com/products/intellectual-property/xvc.html (Need Correct URL)
+
