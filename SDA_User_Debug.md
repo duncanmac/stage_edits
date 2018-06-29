@@ -113,18 +113,18 @@ Follow this two-step process to probe signals which are internal to the Kernel c
 
 1. Add/modify System ILA core to include extra "native probe ports"
 The procedure for selecting signals to monitor depends on whether:
-- You **have** an existing System ILA core in your design
+- You **have** an existing System ILA core in your design 
 - You **do not have** an existing System ILA core in your design
 
 ###### Modifying a Design with Existing ILA Core(s)
-If you **have** an existing System ILA core in your design (for instance, added using the "--dk chipscope" option), then you need to modify it to add one or more **native probe** ports and tie them off to ground (e.g., logical '0'). 
+If you **have** an existing System ILA core in your design (for instance, added using the "--dk chipscope" option), then you need 
+to modify it to add one or more **native probe** ports and tie them off to ground (e.g., logical '0'). 
 
     1.1 You do this by first creating a Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP 
     Integrator.
     
     1.2 Next, enable one or more **native probe** port(s) in addition to your existing **interface** probe ports by adding additional
     commands to the Tcl script. For instance, to add a single 32-bit native probe port:
-    
     ```     
           # Customize the System ILA core
           set_property -dict \
@@ -135,9 +135,7 @@ If you **have** an existing System ILA core in your design (for instance, added 
             CONFIG.C_PROBE0_WIDTH {32} \
             ] [get_bd_cells system_ila_0]
     ```
-
     1.3 Then add an xlconstant block that will be used to tie off the native probe port added above to "ground" (i.e., logical '0'):
-
     ```     
            # Add 32-bit "ground" constant blocks that will be used to 
            # tie off the 32-bit native probe ports of the System ILA
@@ -149,11 +147,12 @@ If you **have** an existing System ILA core in your design (for instance, added 
            connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
     ``` 
     1.5 Run xocc with the newly script Tcl
+    
 Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the **route_design**
 step of the xocc compile run:
-```     
+    ```     
     xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl 
-```     
+    ```     
 **Note**:  The vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
 
 ###### Adding a System ILA core from scratch
