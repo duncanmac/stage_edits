@@ -193,6 +193,71 @@ step of the xocc compile run:
 Note: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
 
 ###### Modify debug port connections to probe signals in post-route design
+
+Once you run your kernel design in hardware execution mode and determine you would like to debug an intra-kernel signal (for 
+example, elements an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create 
+a Vivado Tcl script (which we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the "modify_debug_ports" command to 
+connect the probe0[31:0] port to the 32-bit bus net:  
+
+    ```
+    modify_debug_ports -probes \
+    [list \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 0  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[0]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 1  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[1]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 2  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[2]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 3  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[3]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 29 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[29]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 30 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[30]} \
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 31 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31]} \
+    ]
+    ```
+
+- Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the route_design step of the xocc compile run:  
+    ```
+    xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl …
+    ```
+Note:  the vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
+
+• Changing the System ILA settings
+		○ In order to change the default settings of any System ILA core in your design, you need to create a Vivado Tcl script (e.g., /tmp/myproj/sys_ila_adv_settings.tcl") that will be run in the post-system linker step of the xocc compile run.  
+		○ Here's how you make various settings changes to a System ILA core called "system_ila_0":
+			§ To change the data depth (default is 4096; valid values are 1024, 2048, 4096, 8192, and 16384):
+				set_property -dict \
+				  [list \
+				    CONFIG.C_DATA_DEPTH {8192} \
+				  ] [get_bd_cells system_ila_0]
+			§ To change the number of input pipe stages (default is 2; valid values are integers 0 through 6).  Input pipe stages on the System ILA core make it easier for the place_design, route_design, and modify_debug_ports compile steps to achieve design closure with minimal impact on design quality of results:
+				set_property -dict \
+				  [list \
+				    CONFIG.C_INPUT_PIPE_STAGES {3} \
+				  ] [get_bd_cells system_ila_0]
+			§ To enable storage qualification (default is '0' for disabled; valid values are '0' for disabled and '1' for enabled).  Storage qualification is used to filter probe data values in order to maximize the data capture buffer space of the System ILA core.  It is recommended to increment the number of comparators for all probe ports by 1 when enabling storage qualification:
+				set_property -dict \
+				  [list \
+				    CONFIG.C_EN_STRG_QUAL {1} \
+				    CONFIG.ALL_PROBE_SAME_MU_CNT {2} \
+				  ] [get_bd_cells system_ila_0]
+			§ To enable advanced trigger state machine (default is "false" for disabled; valid values are "false" for disabled and "true" for enabled). Advanced trigger state machine is used to build multi-stage trigger conditions that can be used to trigger on complex events in hardware. It is recommended to increment the number of comparators for all probe ports by 2 when enabling advanced triggering:
+				set_property -dict \
+				  [list \
+				    CONFIG.C_ADV_TRIGGER {true} \
+				    CONFIG.ALL_PROBE_SAME_MU_CNT {3} \
+				  ] [get_bd_cells system_ila_0]
+			§ To enable both storage qualification and advanced trigger state machine. It is recommended to increment the number of comparators for all probe ports by 3 when enabling both storage qualification and advanced triggering:
+				set_property -dict \
+				  [list \
+				    CONFIG.C_EN_STRG_QUAL {1} \
+				    CONFIG.C_ADV_TRIGGER {true} \
+				    CONFIG.ALL_PROBE_SAME_MU_CNT {4} \
+				  ] [get_bd_cells system_ila_0]
+		○ Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system linker step of the xocc compile run:
+			xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl …
+		Note: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
+
+
+
+
+STOP HEre
 Once you run your kernel design in System mode and determine you would like to debug an intra-kernel signal (for example, elements 
 an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado Tcl script (which
 we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the "modify_debug_ports" command to connect the probe0[31:0] port to 
