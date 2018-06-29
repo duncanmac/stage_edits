@@ -182,10 +182,10 @@ probe** ports that are tied off to ground (e.g., logical '0'). You do this by fi
 - Connect the xlconstant block to the new native probe port of the System ILA core
     ```
     connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
-    ``` 
+    ```
 <a name="Update_ILA_Core"></a>
 Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system **linker**
-step of the xocc compile run:
+step of the xocc compile run:  
     ```
     xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl
     ```
@@ -196,7 +196,7 @@ step of the xocc compile run:
 Once you run your kernel design in System mode and determine you would like to debug an intra-kernel signal (for example, elements 
 an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado Tcl script (which
 we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the "modify_debug_ports" command to connect the probe0[31:0] port to 
-the 32-bit bus net:
+the 32-bit bus net:  
     ```
     modify_debug_ports -probes \
     [list \
@@ -234,7 +234,7 @@ the 32-bit bus net:
     {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 31 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31]} \
     ```
 Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the 
-route_design step of the xocc compile run:
+route_design step of the xocc compile run:  
     ```
     xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl …
     ```
