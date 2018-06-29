@@ -197,10 +197,11 @@ Once you run your kernel design in System mode and determine you would like to d
 an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado Tcl script (which
 we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the "modify_debug_ports" command to connect the probe0[31:0] port to 
 the 32-bit bus net:  
+
     ```
     modify_debug_ports -probes \
     [list \
-    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 0  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[0]} \    
+    {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 0  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[0]} \   
     {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 1  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[1]} \
     {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 2  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[2]} \
     {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 3  WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[3]} \
@@ -244,18 +245,19 @@ route_design step of the xocc compile run:
 In order to change the default settings of any System ILA core in your design, you need to create a Vivado Tcl script 
 (e.g., /tmp/myproj/sys_ila_adv_settings.tcl") that will be run in the post-system linker step of the xocc compile run.
 
-Here's how you make various settings changes to a System ILA core called "system_ila_0":
+Here's how you make various settings changes to a System ILA core called "system_ila_0":  
 
-- To change the data depth (default is 4096; valid values are 1024, 2048, 4096, 8192, and 16384):
-      ```
-		  set_property -dict \
-			    [list \
-				  CONFIG.C_DATA_DEPTH {8192} \
-				  ] [get_bd_cells system_ila_0]
-      ```
+- To change the data depth (default is 4096; valid values are 1024, 2048, 4096, 8192, and 16384):  
+    ```
+    set_property -dict \
+    [list \
+    CONFIG.C_DATA_DEPTH {8192} \
+    ] [get_bd_cells system_ila_0]
+    ```
+    
 - To change the number of input pipe stages (default is 2; valid values are integers 0 through 6).  Input pipe stages on the System 
 ILA core make it easier for the place_design, route_design, and modify_debug_ports compile steps to achieve design closure with minimal 
-impact on design quality of results:
+impact on design quality of results:  
       ```
 			set_property -dict \
 				  [list \
@@ -264,7 +266,7 @@ impact on design quality of results:
 	      ```
 	- To enable storage qualification (default is '0' for disabled; valid values are '0' for disabled and '1' for enabled).  Storage 
   qualification is used to filter probe data values in order to maximize the data capture buffer space of the System ILA core.  It 
-  is recommended to increment the number of comparators for all probe ports by 1 when enabling storage qualification:
+  is recommended to increment the number of comparators for all probe ports by 1 when enabling storage qualification:  
       ```
 			set_property -dict \
 				  [list \
