@@ -99,7 +99,8 @@ Use the ILA core that is debugging the AXI interface between the Shell and Kerne
 
 #### SDx flow
 
-Note: For RTL kernels use the standard [IP core instantiation flow][IP_core_Flow] to add ILA and/or VIO cores to your design. These debug cores will automatically **...looks like missing end-of-sentence ????**
+Note: For RTL kernels use the standard [IP core instantiation flow][IP_core_Flow] to add ILA and/or VIO cores to your design. These
+debug cores will automatically **...looks like missing end-of-sentence ????**
 
 There are two types of signals you may wish to monitor.
 - Signals which are ports on the Kernel compute unit
@@ -181,7 +182,14 @@ probe** ports that are tied off to ground (e.g., logical '0'). You do this by fi
 - Connect the xlconstant block to the new native probe port of the System ILA core
     ```
     connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
-    ```    
+    ``` 
+<a name="Update_ILA_Core"></a>
+Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system **linker**
+step of the xocc compile run:
+    ```
+    xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl
+    ```
+
 **Note**: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
 
 ###### Modify debug port connections to probe signals in post-route design
