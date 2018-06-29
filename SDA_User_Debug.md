@@ -120,7 +120,10 @@ The procedure for selecting signals to monitor depends on whether:
 - You [**do not have**](#No_ILA_Core) an existing System ILA core in your design
 
 <a name="Have_ILA_Core"></a>
-If you **have** an existing System ILA core in your design (for instance, added using the "--dk chipscope" option), then you need to modify it to add one or more "native probe" ports and tie them off to ground (e.g., logical '0'). You do this by first creating a Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP Integrator block design as follows:
+If you **have** an existing System ILA core in your design (for instance, added using the "--dk chipscope" option), then you need to
+modify it to add one or more "native probe" ports and tie them off to ground (e.g., logical '0'). You do this by first creating a 
+Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP Integrator block design as follows:
+
 - Enable one or more "native probe" port(s) in addition to your existing "interface" probe ports.  For instance, to add a single 
     32-bit native probe port:
     ```
@@ -178,14 +181,7 @@ probe** ports that are tied off to ground (e.g., logical '0'). You do this by fi
 - Connect the xlconstant block to the new native probe port of the System ILA core
     ```
     connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
-    ```
-    
-<a name="Update_ILA_Core"></a>
-Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system **linker**
-step of the xocc compile run:
-    ```
-    xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl …
-    ```
+    ```    
 **Note**: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
 
 ###### Modify debug port connections to probe signals in post-route design
