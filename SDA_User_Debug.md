@@ -179,8 +179,10 @@ probe** ports that are tied off to ground (e.g., logical '0'). You do this by fi
     ```
     connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
     ```
+    
 <a name="Update_ILA_Core"></a>
-Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system **linker** step of the xocc compile run:
+Invoke the Vivado Tcl script described above (e.g., "/tmp/myproj/sys_ila_adv_settings.tcl") immediately following the system **linker**
+step of the xocc compile run:
     ```
     xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl …
     ```
