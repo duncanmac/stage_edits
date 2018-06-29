@@ -189,15 +189,14 @@ step of the xocc compile run:
     ```
     xocc --xp param:compiler.userPostSysLinkTcl=/tmp/proj/sys_ila_adv_settings.tcl
     ```
-
-**Note**: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
+    
+Note: the param:compiler.userPostSysLinkTcl parameter requires an absolute path to the Vivado Tcl script.
 
 ###### Modify debug port connections to probe signals in post-route design
 Once you run your kernel design in System mode and determine you would like to debug an intra-kernel signal (for example, elements 
 an intra-kernel 32-bit bus net called "WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31:0]"), you need to create a Vivado Tcl script (which
 we'll call "/tmp/myproj/modify_sys_ila_probes.tcl") that calls the "modify_debug_ports" command to connect the probe0[31:0] port to 
 the 32-bit bus net:  
-
     ```
     modify_debug_ports -probes \
     [list \
@@ -234,12 +233,14 @@ the 32-bit bus net:
     {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 30 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[30]} \
     {WRAPPER_INST/CL/system_ila_0/inst/ila_lib/probe0 31 WRAPPER_INST/CL/krnl_vadd_1/inst/c_tmp_q[31]} \
     ```
+    
 Invoke the Vivado Tcl script described above  (e.g., "/tmp/myproj/modify_sys_ila_probes.tcl") immediately following the 
 route_design step of the xocc compile run:  
     ```
     xocc --xp vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST=/tmp/myproj/modify_sys_ila_probes.tcl …
     ```
-**Note**:  The vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
+    
+Note:  The vivado_prop:run.impl_1.STEPS.ROUTE_DESIGN.TCL.POST parameter requires an absolute path to the Vivado Tcl script.
 
 ###<a name="System_ILA_Tcl"></a>Changing the System ILA settings
 In order to change the default settings of any System ILA core in your design, you need to create a Vivado Tcl script 
