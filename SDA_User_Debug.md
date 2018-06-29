@@ -116,8 +116,9 @@ The procedure for selecting signals to monitor depends on whether:
 - You **have** an existing System ILA core in your design
 - You **do not have** an existing System ILA core in your design
 
-###### Modifying a Design with Existing ILA Core(s)
-If you **have** an existing System ILA core in your design (for instance, added using the "--dk chipscope" option), then you need to modify it to add one or more **native probe** ports and tie them off to ground (e.g., logical '0'). 
+###### Modifying a design with existing System ILA Core(s)
+If you **have** an existing System ILA core in your design (for instance, added using the "--dk chipscope" option), then you need to
+modify it to add one or more **native probe** ports and tie them off to ground (e.g., logical '0'). 
 
     1.1 You do this by first creating a Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP 
     Integrator.
