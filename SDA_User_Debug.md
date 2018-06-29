@@ -136,11 +136,12 @@ If you **have** an existing System ILA core in your design (for instance, added 
     ] [get_bd_cells system_ila_0]
     ```
     - Add an xlconstant block that will be used to tie off the native probe port added above to "ground" (i.e., logical '0'):
-    
-							# Add 32-bit "ground" constant blocks that will be used to 
-							# tie off the 32-bit native probe ports of the System ILA
-							create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 sys_ila_probe_tieoff32_0
-							set_property -dict [list CONFIG.CONST_WIDTH {32}  CONFIG.CONST_VAL {0}] [get_bd_cells sys_ila_probe_tieoff32_0]
+    ```
+    # Add 32-bit "ground" constant blocks that will be used to 
+    # tie off the 32-bit native probe ports of the System ILA
+    create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 sys_ila_probe_tieoff32_0
+    set_property -dict [list CONFIG.CONST_WIDTH {32}  CONFIG.CONST_VAL {0}] [get_bd_cells sys_ila_probe_tieoff32_0]
+    ```
 						◊ Connect the xlconstant block to the new native probe port of the System ILA core
 							connect_bd_net [get_bd_pins sys_ila_probe_tieoff32_0/dout] [get_bd_pins system_ila_0/probe0]
 					b) If you DO NOT have an existing System ILA core in your design, then you need to create one that includes one or more "native probe" ports that are tied off to ground (e.g., logical '0'). You do this by first creating a Vivado Tcl script (which we'll call "/tmp/myproj/sys_ila_adv_settings.tcl") to modify the IP Integrator block design as follows:
